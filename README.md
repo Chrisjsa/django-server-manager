@@ -86,8 +86,8 @@ Select an option:
 1. Check Docker Containers
 2. Install Requirements
 3. Sync Roles
-4. Run Project
-5. Backup and Unzip
+4. Backup and Unzip
+5. Run Project
 6. Exit
 ```
 
