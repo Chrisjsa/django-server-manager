@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Project-specific variables
-PROJECT_NAME="project"  # Adjust as needed
-PORT=13001               # Adjust as needed
-SYSTEM_USER="user"
+# Project-specific variables 
+PROJECT_NAME="project"                          # Adjust as needed
+DJANGO_SETTING_MODULE="setting_directory_proj"  # Adjust as needed
+PORT=13001                                      # Adjust as needed
+SYSTEM_USER="user"                              # Adjust as needed
 
 # Base project directory
 PROJECT_DIR="/usr/local/${PROJECT_NAME}-api"

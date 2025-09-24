@@ -55,13 +55,13 @@ display_menu() {
                     ;;
                 "Sync Roles")
                     log "Syncing roles..."
-                    python3 "$APP_DIR/shipping_control_api_proj/manage.pyc" syncroles && log "✔ Roles synced successfully." || log "✖ Failed to sync roles."
+                    python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" syncroles && log "✔ Roles synced successfully." || log "✖ Failed to sync roles."
                     break
                     ;;
                 "Run Project")
                     log "Starting the Django project with SSL..."
                     check_and_kill_port
-                    nohup python3 "$APP_DIR/shipping_control_api_proj/manage.pyc" runsslserver 0.0.0.0:13001 --certificate "$SSL_CERT" --key "$SSL_KEY" &
+                    nohup python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" runsslserver 0.0.0.0:13001 --certificate "$SSL_CERT" --key "$SSL_KEY" &
                     log "✔ Django project is running. You can stop the server with CONTROL-C."
                     break
                     ;;
