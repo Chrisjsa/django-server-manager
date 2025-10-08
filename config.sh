@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # Project-specific variables 
-PROJECT_NAME="project"                          # Adjust as needed
+PROJECT_NAME="mercurio"                          # Adjust as needed
 DJANGO_SETTING_MODULE="setting_directory_proj"  # Adjust as needed
 PORT=13001                                      # Adjust as needed
 SYSTEM_USER="user"                              # Adjust as needed
 
 # Base project directory
 PROJECT_DIR="/usr/local/${PROJECT_NAME}-api"
+UI_DIR="/home/${SYSTEM_USER}/front/dist"
+UI_PORT=12001
 
 # Set directories for logs, reports, and sessions
 LOG_DIR="$PROJECT_DIR/log"
@@ -19,7 +21,7 @@ APP_DIR="$PROJECT_DIR/app"
 # Backup paths
 COMPILE_DIR="/home/${SYSTEM_USER}/compiled"
 TEMP_DIR="${PROJECT_NAME}_temp"
-DEST_DIR=APP_DIR  # Default backup destination directory
+DEST_DIR=$APP_DIR  # Default backup destination directory
 
 # SSL Certificates
 SSL_DIR_NAME="pems"

@@ -25,19 +25,30 @@ create_venv
 activate_venv
 
 # Function to check for running processes on the specified port
+#!/bin/bash
+
+# Función para verificar y matar procesos que ocupan un puerto
 check_and_kill_port() {
-    PORT=13001
-    if lsof -i:$PORT; then
-        log "✖ Port $PORT is currently occupied. Attempting to kill the existing process."
-        lsof -ti:$PORT | xargs kill -9
-        log "✔ Existing process on port $PORT has been killed."
+    local CURRENT_PORT="$1"
+    
+    if lsof -i:"$CURRENT_PORT" > /dev/null; then
+        log "✖ Port $CURRENT_PORT is currently occupied. Attempting to kill the existing process."
+        local PID=$(lsof -ti:"$CURRENT_PORT")
+        if kill -9 $PID; then
+            log "✔ Existing process on port $CURRENT_PORT has been killed."
+        else
+            log "✖ Failed to kill the process on port $CURRENT_PORT."
+        fi
+    else
+        log "✔ Port $CURRENT_PORT is free."
     fi
 }
+
 
 # Display the menu for executing commands
 display_menu() {
     PS3='Please enter your choice: '
-    options=("Check Docker Containers" "Install Requirements" "Sync Roles" "Run Project" "Backup and Unzip" "Exit")
+    options=("Check Docker Containers" "Install Requirements" "Sync Roles" "Backup and Unzip" "Run Project" "Run UI" "Exit")
 
     while true; do
         select opt in "${options[@]}"; do
@@ -58,17 +69,25 @@ display_menu() {
                     python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" syncroles && log "✔ Roles synced successfully." || log "✖ Failed to sync roles."
                     break
                     ;;
-                "Run Project")
-                    log "Starting the Django project with SSL..."
-                    check_and_kill_port
-                    nohup python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" runsslserver 0.0.0.0:13001 --certificate "$SSL_CERT" --key "$SSL_KEY" &
-                    log "✔ Django project is running. You can stop the server with CONTROL-C."
-                    break
-                    ;;
                 "Backup and Unzip")
                     log "Initiating Backup and Unzip process..."
                     # Call the backup and unzip script when the user chooses this option
                     ./backup_and_unzip.sh  # This will execute the backup and unzip script
+                    break
+                    ;;
+                "Run Project")
+                    log "Starting the Django project with SSL..."
+                    check_and_kill_port "$PORT"
+                    nohup python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" runsslserver 0.0.0.0:$PORT --certificate "$SSL_CERT" --key "$SSL_KEY" > "${LOG_DIR}/django_activity.log" 2>&1 &
+                    log "✔ Django project is running."
+                    break
+                    ;;
+                
+                "Run UI")
+                    log "Starting the VUE UI with SSL..."
+                    check_and_kill_port "$UI_PORT"
+                    nohup http-server -S -C "$SSL_CERT" -K "$SSL_KEY" -p $UI_PORT --proxy http://localhost:$UI_PORT > "${LOG_DIR}/vue_activity.log" 2>&1 &
+                    log "✔ VUE is running."
                     break
                     ;;
                 "Exit")
