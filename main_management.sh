@@ -25,12 +25,9 @@ create_venv
 activate_venv
 
 # Function to check for running processes on the specified port
-#!/bin/bash
-
-# Función para verificar y matar procesos que ocupan un puerto
 check_and_kill_port() {
     local CURRENT_PORT="$1"
-    
+
     if lsof -i:"$CURRENT_PORT" > /dev/null; then
         log "✖ Port $CURRENT_PORT is currently occupied. Attempting to kill the existing process."
         local PID=$(lsof -ti:"$CURRENT_PORT")
@@ -43,12 +40,10 @@ check_and_kill_port() {
         log "✔ Port $CURRENT_PORT is free."
     fi
 }
-
-
 # Display the menu for executing commands
 display_menu() {
     PS3='Please enter your choice: '
-    options=("Check Docker Containers" "Install Requirements" "Sync Roles" "Backup and Unzip" "Run Project" "Run UI" "Exit")
+    options=("Check Docker Containers" "Install Requirements" "Sync Roles" "Backup and Unzip" "Run Project" "Run Celery" "Run UI" "Exit")
 
     while true; do
         select opt in "${options[@]}"; do
@@ -78,15 +73,38 @@ display_menu() {
                 "Run Project")
                     log "Starting the Django project with SSL..."
                     check_and_kill_port "$PORT"
-                    nohup python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" runsslserver 0.0.0.0:$PORT --certificate "$SSL_CERT" --key "$SSL_KEY" > "${LOG_DIR}/django_activity.log" 2>&1 &
-                    log "✔ Django project is running."
+                    nohup python3 "$APP_DIR/$DJANGO_SETTING_MODULE/manage.pyc" runsslserver 0.0.0.0:$PORT --certificate "$SSL_CERT" --key "$SSL_KEY"  > "${LOG_DIR}/django_activity.log" 2>&1 &  # Run a leave to menu
+                    log "✔ Django project is running. You can stop the server with CONTROL-C."
+                    #cd $APP_DIR
+                    #pwd
+                    #nohup celery -A shipping_control_api_proj.celery_config worker --loglevel=info > "${LOG_DIR}/celery_worker.log" 2>&1 &
+                    #log "✔ Celery Worker started."
+                    #nohup celery -A shipping_control_api_proj.celery_config beat --loglevel=info > "${LOG_DIR}/celery_beat.log" 2>&1 &
+                    #log "✔ Celery Beat started."
+                    #break
+                    ;;
+                "Run Celery")
+                    log "Checking for existing Celery processes..."
+                    # Check for running Celery workers and beat
+                    if ps aux | grep -v grep | grep 'celery'; then
+                        log "Existing Celery processes found. Terminating them..."
+                        pkill -f 'celery'  # This will kill all celery processes running
+                    else
+                        log "No existing Celery processes found."
+                    fi
+                    cd $APP_DIR
+                    pwd
+                    nohup celery -A shipping_control_api_proj.celery_config worker --loglevel=info > "${LOG_DIR}/celery_worker.log" 2>&1 &
+                    log "✔ Celery Worker started."
+                    nohup celery -A shipping_control_api_proj.celery_config beat --loglevel=info > "${LOG_DIR}/celery_beat.log" 2>&1 &
+                    log "✔ Celery Beat started."
                     break
                     ;;
-                
                 "Run UI")
-                    log "Starting the VUE UI with SSL..."
+                    log "Starting the VUE project with SSL..."
                     check_and_kill_port "$UI_PORT"
-                    nohup http-server -S -C "$SSL_CERT" -K "$SSL_KEY" -p $UI_PORT --proxy http://localhost:$UI_PORT > "${LOG_DIR}/vue_activity.log" 2>&1 &
+                    cd $UI_DIR
+                    nohup http-server -S -C "$SSL_CERT" -K "$SSL_KEY" -p 12001 --proxy http://localhost:$UI_PORT > "${LOG_DIR}/vue_activity.log" 2>&1 &
                     log "✔ VUE is running."
                     break
                     ;;
